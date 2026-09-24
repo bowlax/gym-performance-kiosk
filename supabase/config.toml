@@ -1,0 +1,2 @@
+[functions.kiosk-log]
+verify_jwt = false
