@@ -14,7 +14,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as KioskIndexRouteImport } from './routes/kiosk.index'
 import { Route as KioskLoggedRouteImport } from './routes/kiosk.logged'
 import { Route as KioskLogRouteImport } from './routes/kiosk.log'
-import { Route as KioskConfirmRouteImport } from './routes/kiosk.confirm'
 import { Route as ApiKioskSubmitRouteImport } from './routes/api/kiosk/submit'
 import { Route as ApiKioskSessionRouteImport } from './routes/api/kiosk/session'
 import { Route as ApiKioskMembersRouteImport } from './routes/api/kiosk/members'
@@ -45,11 +44,6 @@ const KioskLogRoute = KioskLogRouteImport.update({
   path: '/log',
   getParentRoute: () => KioskRoute,
 } as any)
-const KioskConfirmRoute = KioskConfirmRouteImport.update({
-  id: '/confirm',
-  path: '/confirm',
-  getParentRoute: () => KioskRoute,
-} as any)
 const ApiKioskSubmitRoute = ApiKioskSubmitRouteImport.update({
   id: '/api/kiosk/submit',
   path: '/api/kiosk/submit',
@@ -74,7 +68,6 @@ const ApiKioskExercisesRoute = ApiKioskExercisesRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/kiosk': typeof KioskRouteWithChildren
-  '/kiosk/confirm': typeof KioskConfirmRoute
   '/kiosk/log': typeof KioskLogRoute
   '/kiosk/logged': typeof KioskLoggedRoute
   '/kiosk/': typeof KioskIndexRoute
@@ -85,7 +78,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/kiosk/confirm': typeof KioskConfirmRoute
   '/kiosk/log': typeof KioskLogRoute
   '/kiosk/logged': typeof KioskLoggedRoute
   '/kiosk': typeof KioskIndexRoute
@@ -98,7 +90,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/kiosk': typeof KioskRouteWithChildren
-  '/kiosk/confirm': typeof KioskConfirmRoute
   '/kiosk/log': typeof KioskLogRoute
   '/kiosk/logged': typeof KioskLoggedRoute
   '/kiosk/': typeof KioskIndexRoute
@@ -112,7 +103,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/kiosk'
-    | '/kiosk/confirm'
     | '/kiosk/log'
     | '/kiosk/logged'
     | '/kiosk/'
@@ -123,7 +113,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/kiosk/confirm'
     | '/kiosk/log'
     | '/kiosk/logged'
     | '/kiosk'
@@ -135,7 +124,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/kiosk'
-    | '/kiosk/confirm'
     | '/kiosk/log'
     | '/kiosk/logged'
     | '/kiosk/'
@@ -191,13 +179,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KioskLogRouteImport
       parentRoute: typeof KioskRoute
     }
-    '/kiosk/confirm': {
-      id: '/kiosk/confirm'
-      path: '/confirm'
-      fullPath: '/kiosk/confirm'
-      preLoaderRoute: typeof KioskConfirmRouteImport
-      parentRoute: typeof KioskRoute
-    }
     '/api/kiosk/submit': {
       id: '/api/kiosk/submit'
       path: '/api/kiosk/submit'
@@ -230,14 +211,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface KioskRouteChildren {
-  KioskConfirmRoute: typeof KioskConfirmRoute
   KioskLogRoute: typeof KioskLogRoute
   KioskLoggedRoute: typeof KioskLoggedRoute
   KioskIndexRoute: typeof KioskIndexRoute
 }
 
 const KioskRouteChildren: KioskRouteChildren = {
-  KioskConfirmRoute: KioskConfirmRoute,
   KioskLogRoute: KioskLogRoute,
   KioskLoggedRoute: KioskLoggedRoute,
   KioskIndexRoute: KioskIndexRoute,

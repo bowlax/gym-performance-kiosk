@@ -156,13 +156,9 @@ export async function submitKioskSession(
   }
 
   const resendKey = runtimeEnv("RESEND_API_KEY");
-  const origin = new URL(request.url).origin;
-  if (!resendKey) {
-    await deletePending(headers, pendingId);
-    return json(503, { error: "Confirmation email is not configured" });
-  }
-
-  const confirmUrl = `${origin}/kiosk/confirm?token=${encodeURIComponent(token)}`;
+  const memberWeb = (runtimeEnv("MEMBER_WEB_ORIGIN") ||
+    "https://gymperf-member-web.7r2t2gzhkq.workers.dev").replace(/\/$/, "");
+  const confirmUrl = `${memberWeb}/kiosk/confirm?token=${encodeURIComponent(token)}`;
   const exercises: KioskEmailExercise[] = parsed.request.payload.exercises.map((exercise) => {
     const set = exercise.sets[0]!;
     return {
@@ -179,40 +175,36 @@ export async function submitKioskSession(
     exercises,
     confirmUrl,
   });
-  const resendRes = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: REMINDER_FROM,
-      to: [member.teamup_email!.trim()],
-      subject: copy.subject,
-      text: copy.text,
-      html: copy.html,
-    }),
-  });
+  const mailBody = {
+    to: member.teamup_email!.trim(),
+    subject: copy.subject,
+    text: copy.text,
+    html: copy.html,
+  };
+  // Worker secret when present. Otherwise the Wolf project secret, via the
+  // owner session — same key log-reminders already uses.
+  const resendRes = resendKey
+    ? await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: REMINDER_FROM, ...mailBody, to: [mailBody.to] }),
+    })
+    : await fetch(new URL("functions/v1/kiosk-confirm-mail", supabaseOrigin()), {
+      method: "POST",
+      headers,
+      body: JSON.stringify(mailBody),
+    });
   if (!resendRes.ok) {
     await deletePending(headers, pendingId);
-    return json(502, { error: "Could not send the confirmation email" });
+    const text = await resendRes.text();
+    const status = resendRes.status === 503 ? 503 : 502;
+    return json(status, {
+      error: errorMessage(text, "Could not send the confirmation email"),
+    });
   }
 
   return json(200, { ok: true });
-}
-
-/** Confirm writes a live session. Submit does not. */
-export async function confirmKioskPending(token: string): Promise<Response> {
-  const tokenHash = await hashKioskToken(token.trim());
-  const target = new URL("rest/v1/rpc/commit_kiosk_pending", supabaseOrigin());
-  return await fetch(target, {
-    method: "POST",
-    headers: {
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({ p_token_hash: tokenHash }),
-  });
 }

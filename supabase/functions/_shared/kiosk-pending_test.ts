@@ -140,10 +140,15 @@ Deno.test("confirm email contains the logged set and a single confirm link", () 
     confirmUrl: "https://gym.example/kiosk/confirm?token=abc",
   });
   assertEquals(copy.subject, "Confirm your Wolf session");
+  assert(copy.text.includes("Hi Ada,"));
   assert(copy.text.includes("Back Squat: 100 kg, 5 reps"));
   assert(copy.text.includes("https://gym.example/kiosk/confirm?token=abc"));
   assert(copy.text.includes("not on your board until you confirm"));
   assertEquals(copy.text.match(/kiosk\/confirm/g)?.length, 1);
+  assert(copy.html.includes("https://bowlax.github.io/gym-performance-system/landing/app-icon.png"));
+  assert(copy.html.includes("Confirm session"));
+  assert(copy.html.includes("https://gym.example/kiosk/confirm?token=abc"));
+  assertEquals(copy.html.match(/kiosk\/confirm/g)?.length, 1);
 });
 
 Deno.test("kiosk token hash is stable and not the raw token", async () => {
@@ -169,6 +174,6 @@ Deno.test("pending migration is a separate table with no expiry and no session f
   assert(sql.includes("for delete"));
   assert(!/for select/i.test(sql));
   assert(sql.includes(
-    "grant execute on function public.commit_kiosk_pending(text) to anon, authenticated, service_role",
+    "grant execute on function public.commit_kiosk_pending(text) to authenticated",
   ));
 });

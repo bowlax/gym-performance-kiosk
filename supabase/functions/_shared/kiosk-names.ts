@@ -245,6 +245,14 @@ function formatSetLine(exercise: KioskEmailExercise): string {
   return `${exercise.name}: ${detail}`;
 }
 
+const WOLF_LOGO_URL =
+  "https://bowlax.github.io/gym-performance-system/landing/app-icon.png";
+
+function greetingForName(displayName: string): string {
+  const first = displayName.trim().split(/\s+/)[0];
+  return first ? `Hi ${first},` : "Hi,";
+}
+
 export function buildKioskConfirmEmail(args: {
   displayName: string;
   sessionDate: string;
@@ -252,31 +260,55 @@ export function buildKioskConfirmEmail(args: {
   confirmUrl: string;
 }): KioskEmailCopy {
   const lines = args.exercises.map(formatSetLine);
+  const greeting = greetingForName(args.displayName);
   const subject = "Confirm your Wolf session";
   const text = [
-    `Hi ${args.displayName},`,
+    greeting,
     "",
     `A session on ${args.sessionDate} was entered at the gym kiosk:`,
     ...lines.map((line) => `- ${line}`),
     "",
     "It is not on your board until you confirm it.",
+    "Sign in on the member app, then open:",
     args.confirmUrl,
     "",
     "After that, change it in the app if you need to.",
+    "",
+    "— Wolf",
   ].join("\n");
 
   const items = lines
-    .map((line) => `<li style="margin:0 0 6px;">${escapeHtml(line)}</li>`)
+    .map((line) =>
+      `<p style="margin:0 0 8px;">${escapeHtml(line)}</p>`
+    )
     .join("");
+  const greetingHtml = escapeHtml(greeting);
+  const date = escapeHtml(args.sessionDate);
+  const confirmUrl = escapeHtml(args.confirmUrl);
+  const logo = escapeHtml(WOLF_LOGO_URL);
   const html =
-    `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;line-height:1.5;">` +
-    `<p>Hi ${escapeHtml(args.displayName)},</p>` +
-    `<p>A session on ${escapeHtml(args.sessionDate)} was entered at the gym kiosk:</p>` +
-    `<ul style="padding-left:18px;">${items}</ul>` +
-    `<p>It is not on your board until you confirm it.</p>` +
-    `<p><a href="${escapeHtml(args.confirmUrl)}" style="color:#1A5BA6;">Confirm this session</a></p>` +
-    `<p>After that, change it in the app if you need to.</p>` +
-    `</div>`;
+    `<!DOCTYPE html><html lang="en"><body style="margin:0;padding:0;background:#f4f4f4;">` +
+    `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f4f4;">` +
+    `<tr><td align="center" style="padding:24px 12px;">` +
+    `<table role="presentation" width="560" cellspacing="0" cellpadding="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#222222;">` +
+    `<tr><td align="center" style="background:#000000;padding:20px;">` +
+    `<img src="${logo}" alt="Wolf" width="72" height="72" style="display:block;border:0;width:72px;height:72px;">` +
+    `</td></tr>` +
+    `<tr><td style="padding:28px 32px 8px;font-size:16px;line-height:1.5;">` +
+    `<p style="margin:0 0 16px;">${greetingHtml}</p>` +
+    `<p style="margin:0 0 16px;">A session on ${date} was entered at the gym kiosk.</p>` +
+    items +
+    `<p style="margin:16px 0 24px;">It is not on your board until you confirm it. Sign in on the member app first.</p>` +
+    `<table role="presentation" cellspacing="0" cellpadding="0"><tr>` +
+    `<td align="center" bgcolor="#1A5BA6" style="border-radius:8px;">` +
+    `<a href="${confirmUrl}" style="display:inline-block;padding:12px 24px;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;">Confirm session</a>` +
+    `</td></tr></table>` +
+    `</td></tr>` +
+    `<tr><td style="padding:28px 32px;font-size:13px;line-height:1.5;color:#666666;">` +
+    `<p style="margin:0 0 8px;">After that, change it in the app if you need to.</p>` +
+    `<p style="margin:0;">— Wolf</p>` +
+    `</td></tr>` +
+    `</table></td></tr></table></body></html>`;
 
   return { subject, text, html };
 }

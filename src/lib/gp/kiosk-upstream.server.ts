@@ -2,7 +2,6 @@ import "@tanstack/react-start/server-only";
 
 import { kioskMemberOptions } from "@gp-shared/kiosk-names.ts";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./env";
-import { confirmKioskPending } from "./kiosk-save.server";
 import { readFreshKioskSession } from "./kiosk-session.server";
 
 const NO_STORE = { "Cache-Control": "private, no-store" };
@@ -100,8 +99,4 @@ export async function proxyKioskExercises(): Promise<Response> {
     status: upstream.status,
     headers: { ...NO_STORE, "Content-Type": "application/json" },
   });
-}
-
-export async function confirmKioskToken(token: string): Promise<Response> {
-  return confirmKioskPending(token);
 }

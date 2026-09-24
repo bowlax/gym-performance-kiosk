@@ -101,7 +101,7 @@ describe("kiosk owner login", () => {
       }),
     ).rejects.toMatchObject({
       status: 401,
-      message: "Username or key is incorrect.",
+      message: "Email or secret is wrong.",
     });
   });
 });

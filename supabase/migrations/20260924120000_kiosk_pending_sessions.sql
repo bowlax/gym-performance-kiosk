@@ -108,6 +108,12 @@ begin
     raise exception 'Member not found' using errcode = 'PT404';
   end if;
 
+  -- The email link is not enough. The member must be signed in on the
+  -- member web app, and that session must be this member.
+  if (auth.jwt() ->> 'member_id') is distinct from pending.member_id::text then
+    raise exception 'Sign in on the member app to confirm this session' using errcode = 'PT403';
+  end if;
+
   exercises := pending.payload -> 'exercises';
   if jsonb_typeof(exercises) is distinct from 'array' then
     raise exception 'Invalid pending payload' using errcode = 'PT400';
@@ -256,7 +262,8 @@ end;
 $$;
 
 revoke all on function public.commit_kiosk_pending(text) from public;
-grant execute on function public.commit_kiosk_pending(text) to anon, authenticated, service_role;
+revoke all on function public.commit_kiosk_pending(text) from anon;
+grant execute on function public.commit_kiosk_pending(text) to authenticated;
 
 comment on function public.commit_kiosk_pending(text) is
     'Turns one kiosk_pending_sessions row into a normal session, entries, and sets, then deletes the pending row. Does not consult created_at. No expiry.';

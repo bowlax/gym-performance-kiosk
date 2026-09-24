@@ -409,10 +409,18 @@ Deno.test({
 
       const tokenMatch = sent[0]?.text.match(/token=([^\s]+)/);
       assert(tokenMatch?.[1]);
+      const adaToken = await mintJwt(env.jwtSecret, {
+        memberId: adaId,
+        gymId,
+        appRole: "member",
+      });
       const confirm = await handleKioskLogRequest(
         new Request(
           `${ENDPOINT}/confirm?token=${tokenMatch[1]}`,
-          { method: "GET" },
+          {
+            method: "GET",
+            headers: { Authorization: `Bearer ${adaToken}` },
+          },
         ),
       );
       assertEquals(confirm.status, 200);
@@ -423,7 +431,10 @@ Deno.test({
       const again = await handleKioskLogRequest(
         new Request(
           `${ENDPOINT}/confirm?token=${tokenMatch[1]}`,
-          { method: "GET" },
+          {
+            method: "GET",
+            headers: { Authorization: `Bearer ${adaToken}` },
+          },
         ),
       );
       assertEquals(again.status, 404);

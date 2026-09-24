@@ -83,19 +83,19 @@ function KioskLogin({ onSignedIn }: { onSignedIn: () => void }) {
           Set up this kiosk
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Lee or Steve sign in once. It stays signed in for the next member.
+          Same email and secret as the owner dashboard. It stays signed in for the next member.
         </p>
       </div>
       <div className="rounded-[16px] bg-card p-4 space-y-3">
         <FormField
-          label="Username"
-          type="text"
+          label="Email"
+          type="email"
           autoComplete="username"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
         />
         <FormField
-          label="Key"
+          label="Secret"
           type="password"
           autoComplete="current-password"
           value={key}
@@ -132,9 +132,7 @@ function KioskPicker() {
           throw new Error(body.error ?? body.message ?? "Could not load members.");
         }
         if (cancelled) return;
-        const rows = body.members ?? [];
-        setMembers(rows);
-        setMemberId(rows[0]?.member_id ?? "");
+        setMembers(body.members ?? []);
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -193,6 +191,7 @@ function KioskPicker() {
             onChange={(event) => setMemberId(event.target.value)}
             className="mt-2 h-14 w-full rounded-[10px] border border-input bg-surface px-3.5 text-lg text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/15"
           >
+            <option value="">-Select-</option>
             {members.map((member) => (
               <option key={member.member_id} value={member.member_id}>
                 {member.display_name}

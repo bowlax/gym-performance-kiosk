@@ -231,9 +231,16 @@ async function submitPending(
 async function confirmPending(req: Request): Promise<Response> {
   const token = new URL(req.url).searchParams.get("token")?.trim() ?? "";
   if (!token) return jsonResponse({ error: "Pending log not found" }, 404);
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return jsonResponse(
+      { error: "Sign in on the member app to confirm this session" },
+      401,
+    );
+  }
   const tokenHash = await hashKioskToken(token);
-  const service = createServiceRoleClient();
-  const { data, error } = await service.rpc("commit_kiosk_pending", {
+  const user = createUserClient(authHeader);
+  const { data, error } = await user.rpc("commit_kiosk_pending", {
     p_token_hash: tokenHash,
   });
   if (error) return rpcStatus(error);
